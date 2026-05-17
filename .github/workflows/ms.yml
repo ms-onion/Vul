@@ -1,4 +1,4 @@
-name: Tailscale SSH Long Run
+name: Tailscale SSH Runner with Hostname Nicky
 
 on:
   workflow_dispatch:
@@ -12,6 +12,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y sudo curl gnupg lsb-release openssh-server unzip
+
+      - name: Set hostname to nicky
+        run: |
+          sudo hostnamectl set-hostname nicky
+          echo "127.0.1.1 nicky" | sudo tee -a /etc/hosts
 
       - name: Create user nicky with sudo
         run: |
@@ -34,15 +39,14 @@ jobs:
         env:
           TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
         run: |
-          sudo tailscale up --authkey=${TAILSCALE_AUTHKEY} --hostname=github-runner
+          sudo tailscale up --authkey=${TAILSCALE_AUTHKEY} --hostname=nicky
 
-      - name: Show Tailscale status
+      - name: Show Tailscale status and IP
         run: |
           tailscale status
           tailscale ip -4
 
       - name: Keep runner alive for 6 hours
         run: |
-          echo "Runner active, press Ctrl+C to stop..."
-          # Sleep for 6 hours
+          echo "Runner active, Tailscale node hostname 'nicky', press Ctrl+C to stop..."
           sleep 21600
