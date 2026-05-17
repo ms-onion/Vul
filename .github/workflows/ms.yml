@@ -1,4 +1,4 @@
-name: Setup SSH User with Tailscale
+name: Tailscale SSH Long Run
 
 on:
   workflow_dispatch:
@@ -6,11 +6,12 @@ on:
 jobs:
   tailscale-ssh:
     runs-on: ubuntu-latest
+    timeout-minutes: 360  # 6 jam
     steps:
       - name: Update and install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y sudo curl gnupg lsb-release openssh-server
+          sudo apt-get install -y sudo curl gnupg lsb-release openssh-server unzip
 
       - name: Create user nicky with sudo
         run: |
@@ -39,3 +40,9 @@ jobs:
         run: |
           tailscale status
           tailscale ip -4
+
+      - name: Keep runner alive for 6 hours
+        run: |
+          echo "Runner active, press Ctrl+C to stop..."
+          # Sleep for 6 hours
+          sleep 21600
