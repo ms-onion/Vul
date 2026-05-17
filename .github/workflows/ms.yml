@@ -1,0 +1,41 @@
+name: Setup SSH User with Tailscale
+
+on:
+  workflow_dispatch:
+
+jobs:
+  tailscale-ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update and install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y sudo curl gnupg lsb-release openssh-server
+
+      - name: Create user nicky with sudo
+        run: |
+          sudo useradd -m -s /bin/bash nicky
+          echo "nicky:nicky" | sudo chpasswd
+          sudo usermod -aG sudo nicky
+          echo "nicky ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/nicky
+          sudo chmod 440 /etc/sudoers.d/nicky
+
+      - name: Enable SSH service
+        run: |
+          sudo systemctl enable ssh
+          sudo systemctl start ssh
+
+      - name: Install Tailscale
+        run: |
+          curl -fsSL https://tailscale.com/install.sh | sh
+
+      - name: Connect to Tailscale
+        env:
+          TAILSCALE_AUTHKEY: ${{ secrets.TAILSCALE_AUTHKEY }}
+        run: |
+          sudo tailscale up --authkey=${TAILSCALE_AUTHKEY} --hostname=github-runner
+
+      - name: Show Tailscale status
+        run: |
+          tailscale status
+          tailscale ip -4
